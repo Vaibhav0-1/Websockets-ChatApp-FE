@@ -1,15 +1,17 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import './App.css'
 
 function App() {
 
   const [messages, setMessages] = useState(["Hi There", "Hello"])
+  const wsRef = useRef();
 
   useEffect(() => {
     const ws = new WebSocket("https://localhost:3000");
     ws.onmessage = (event) => {
       setMessages(m =>[...m, event.data])
     }
+    wsRef.current = ws;
   }, []);
   return (
     <div className='h-screen bg-black'>
@@ -22,7 +24,16 @@ function App() {
           type="text" 
           className="flex-1 p-"
         />
-        <button className="bg-purple-600 text-white p-4 rounded-lg hover:bg-purple-700">
+        <button onClick={() => {
+          const message = document.getElementById("message")?.value;
+          wsRef.current.send(JSON.stringify({
+            type: "chat",
+            payload: {
+              message: message
+            }
+          }))
+          
+        }}className="bg-purple-600 text-white p-4 rounded-lg hover:bg-purple-700">
           Send Message
         </button>
       </div>
