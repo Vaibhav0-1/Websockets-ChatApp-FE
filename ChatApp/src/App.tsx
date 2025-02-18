@@ -6,9 +6,10 @@ function App() {
 
   const [messages, setMessages] = useState(["Hi There", "Hello"])
   const wsRef = useRef<WebSocket | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const ws = new WebSocket("https://localhost:3000");
+    const ws = new WebSocket("ws://localhost:8080");
     ws.onmessage = (event) => {
       setMessages(m => [...m, event.data.toString()])
     }
@@ -22,6 +23,10 @@ function App() {
         }
       }))
     }
+    //cleanups
+    return () => {
+      ws.close();
+    }
   }, []);
   return (
     <div className='h-screen bg-black'>
@@ -30,12 +35,13 @@ function App() {
         {messages.map(message => <div className='m-8'><span className='bg-purple-100 text-black rounded p-4 m-8'> {message} </span></div>)}</div>
       <div className='flex bg-purple-100 p-1'>
         <input
+          ref={inputRef}
           placeholder='Message'
           type="text"
           className="flex-1 p-"
         />
         <button onClick={() => {
-          const message = (document.getElementById("message") as HTMLInputElement)?.value;
+          const message = inputRef.current?.value;
           wsRef.current?.send(JSON.stringify({
             type: "chat",
             payload: {
